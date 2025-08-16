@@ -1,0 +1,45 @@
+fields:
+  path:
+    description: >-
+      List of path elements to navigate (e.g., ['area_beta', 'ac',
+      'temp'])
+    example: "[\"area_beta\", \"ac\", \"temp\"]"
+    selector:
+      object: null
+    name: Path
+    required: true
+sequence:
+  - variables:
+      rooms:
+        # Use the identifiers for the areas defined in home assistant for room keys.
+        # You can add or remove keys to each schema under the rooms
+        # Keeping the schema consistent across rooms is recommended
+        area_alpha:
+          ir_entity: remote.alpha_room_smart_ir
+          ac:
+            power: input_boolean.alpha_ac_power
+            temp: input_number.alpha_temperatures
+          fan:
+            power: input_boolean.alpha_fan_power
+            speed: input_number.fan_speed
+        area_beta:
+          ir_entity: remote.smart_ir
+          ac:
+            power: input_boolean.beta_ac_power
+            temp: input_number.beta_ac_temps
+          fan:
+            power: input_boolean.beta_fan_power
+            speed: input_number.beta_fan_speed
+      result: |
+        # Need namespace since jinja2 does not support reassigning vars within loops
+        {% set ns = namespace(result=rooms) %}
+        {% for key in path %}
+          {% set ns.result = ns.result[key] %}
+        {% endfor %}
+        {{ ns.result }}
+      response_data:
+        final_result: "{{ result }}"
+  - stop: Variable lookup complete
+    response_variable: response_data
+alias: Room Configurations Store
+description: Script to fetch value from corresponding room configuration store
